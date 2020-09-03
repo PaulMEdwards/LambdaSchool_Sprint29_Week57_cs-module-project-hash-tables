@@ -1,3 +1,5 @@
+debug = False
+
 class HashTableEntry:
     """
     Linked List hash table key/value pair
@@ -11,18 +13,28 @@ class HashTableEntry:
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
 
+# Resize when load_factor higher than this limit
+load_factor_limit = 0.75
+
+# Hash algorithm constants
+FNV_prime = 1099511628211
+FNV_offset_basis = 14695981039346656037
+DJB_prime = 5381
+DJB_MAGIC_NUMBER = 33
 
 class HashTable:
     """
-    A hash table that with `capacity` buckets
+    A hash table with `capacity` buckets
     that accepts string keys
 
     Implement this.
     """
 
-    def __init__(self, capacity):
-        # Your code here
-
+    def __init__(self, capacity: int):
+        if capacity < MIN_CAPACITY: capacity = MIN_CAPACITY
+        self.capacity = capacity
+        self.slots = [None] * capacity
+        self.container = [None] * capacity
 
     def get_num_slots(self):
         """
@@ -34,7 +46,8 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        self.capacity = len(self.container)
+        return self.capacity
 
 
     def get_load_factor(self):
@@ -43,7 +56,12 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        load = 0
+        for v in self.container:
+            if v is not None: load += 1
+        load_factor = self.capacity / load
+        if debug: print(f"Load Factor: {load_factor}")
+        return load_factor
 
 
     def fnv1(self, key):
@@ -53,7 +71,11 @@ class HashTable:
         Implement this, and/or DJB2.
         """
 
-        # Your code here
+        hash = FNV_offset_basis
+        for k in key:
+            hash = hash ^ oct(k)
+            hash = hash * FNV_prime
+        return hash
 
 
     def djb2(self, key):
@@ -62,7 +84,12 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
-        # Your code here
+
+        hash = DJB_prime
+        for k in key:
+            hash = (hash * DJB_MAGIC_NUMBER) + ord(k)
+            # hash = ((hash << 5) + hash) + ord(k) # Equivalent implementation; faster on some older CPUs
+        return hash
 
 
     def hash_index(self, key):
@@ -81,7 +108,20 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        i = self.hash_index(key)
+        if debug: print(f"Hash Index for key '{key}' = {i}\nValue = {value}")
+
+        self.slots[i] = key
+        self.container[i] = value
+
+        # if self.slots[i] == None:
+        #     self.slots[i] = key
+        #     self.container[i] = value
+        # else:
+        #     if self.slots[i] == key:
+        #         self.container[i] = value
+        #     else:
+
 
 
     def delete(self, key):
@@ -92,7 +132,9 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        i = self.hash_index(key)
+        if self.slots[i] is not None: self.slots[i] = None
+        if self.container[i] is not None: self.container[i] = None
 
 
     def get(self, key):
@@ -103,7 +145,8 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        i = self.hash_index(key)
+        return self.container[i]
 
 
     def resize(self, new_capacity):
@@ -113,7 +156,16 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        s = self.slots[:]
+        c = self.container[:]
+        self.__init__(new_capacity)
+        for i in range(len(s)):
+            if debug:
+                print(f"i='{i}'")
+                print(f"s[i]='{s[i]}'")
+                print(f"c[i]='{c[i]}'")
+            if s[i] is not None:
+                self.put(s[i], c[i])
 
 
 
@@ -137,7 +189,7 @@ if __name__ == "__main__":
 
     # Test storing beyond capacity
     for i in range(1, 13):
-        print(ht.get(f"line_{i}"))
+        print(f"{i}\t{ht.get(f'line_{i}')}")
 
     # Test resizing
     old_capacity = ht.get_num_slots()
@@ -148,6 +200,6 @@ if __name__ == "__main__":
 
     # Test if data intact after resizing
     for i in range(1, 13):
-        print(ht.get(f"line_{i}"))
+        print(f"{i}\t{ht.get(f'line_{i}')}")
 
     print("")
