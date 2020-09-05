@@ -73,7 +73,7 @@ class HashTable:
 
         hash = FNV_offset_basis
         for k in key:
-            hash = hash ^ oct(k)
+            hash = hash ^ ord(k)
             hash = hash * FNV_prime
         return hash
 
