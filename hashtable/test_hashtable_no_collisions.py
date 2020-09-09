@@ -18,6 +18,7 @@ class TestHashTable(unittest.TestCase):
         self.assertTrue(return_value == val)
 
     def test_hash_table_insertion_and_retrieval(self):
+        if debug: print("\ntest_hash_table_insertion_and_retrieval")
         ht = HashTable(0x10000)
 
         ht.put("key-0", "val-0")
@@ -35,6 +36,7 @@ class TestHashTable(unittest.TestCase):
         self.assertTrueWithDebug(ht, "key-2", "val-2")
 
     def test_hash_table_pution_overwrites_correctly(self):
+        if debug: print("\ntest_hash_table_pution_overwrites_correctly")
         ht = HashTable(0x10000)
 
         ht.put("key-0", "val-0")
@@ -56,6 +58,7 @@ class TestHashTable(unittest.TestCase):
         self.assertTrueWithDebug(ht, "key-2", "new-val-2")
 
     def test_hash_table_removes_correctly(self):
+        if debug: print("\ntest_hash_table_removes_correctly")
         ht = HashTable(0x10000)
 
         ht.put("key-0", "val-0")
