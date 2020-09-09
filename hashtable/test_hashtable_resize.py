@@ -1,4 +1,4 @@
-debug = True
+debug = False
 
 import unittest
 
@@ -218,9 +218,20 @@ class TestHashTable(unittest.TestCase):
         ht.put("key-8", "val-8")
         ht.put("key-9", "val-9")
 
-        ht.resize(1024)
+        if debug:
+            print(f'Container size: {ht.get_num_slots()}, Values: 10')
+            print(f"\n{ht}")
 
+        if debug:
+            print("\nTesting auto_resize up")
+            ht.auto_resize()
+            print(f'Final size: {ht.get_num_slots()}')
+            print(f"\n{ht}")
+
+        ht.resize(1024)
         self.assertTrue(ht.get_num_slots() == 1024)
+        if debug:
+            print(f"\nManually resized to {ht.get_num_slots()} slots")
 
         # return_value = ht.get("key-0")
         # self.assertTrue(return_value == "val-0")
@@ -252,6 +263,13 @@ class TestHashTable(unittest.TestCase):
         self.assertTrueWithDebug(ht, "key-7", "val-7")
         self.assertTrueWithDebug(ht, "key-8", "val-8")
         self.assertTrueWithDebug(ht, "key-9", "val-9")
+
+
+        if debug:
+            print("\nTesting auto_resize down")
+            ht.auto_resize()
+            print(f'Final size: {ht.get_num_slots()}')
+            print(f"\n{ht}")
 
 
 if __name__ == '__main__':

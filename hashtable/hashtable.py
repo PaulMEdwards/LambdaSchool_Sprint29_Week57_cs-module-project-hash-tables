@@ -1,7 +1,8 @@
 # Python LinkedList Library  https://pypi.org/project/llist/
 from llist import sllist, sllistnode    # pip install llist
 
-debug = True
+debug = False
+trace = False
 
 class HashTableEntry:
     """
@@ -40,6 +41,15 @@ class HashTable:
         self.slots = [None] * capacity
         self.container = [None] * capacity
 
+    def __str__(self):
+        j = -1
+        result = ""
+        for n in self.container:
+            j += 1
+            result += f"{j}\t{n}\n"
+        return result
+
+
     def get_num_slots(self):
         """
         Return the length of the list you're using to hold the hash
@@ -54,17 +64,18 @@ class HashTable:
         return self.capacity
 
 
-    def get_load_factor(self):
+    def get_load_factor(self, capacity = None):
         """
         Return the load factor for this hash table.
 
         Implement this.
         """
+        if capacity is None: capacity = self.capacity
         load = 0
         for v in self.container:
             if v is not None: load += 1
-        load_factor = self.capacity / load
-        if debug: print(f'Load Factor: {load_factor}')
+        load_factor = load / capacity
+        if trace: print(f'Load Factor: {load_factor} = load ({load}) / capacity ({capacity})')
         return load_factor
 
 
@@ -121,12 +132,10 @@ class HashTable:
         # self.container[i] = value
 
         # collision guarding implementation
-        # if debug: print(f'slots["{key}"] = "{self.slots[i]}"')
         if self.slots[i] is None:
             self.slots[i] = key
             self.container[i] = sllist([(key, value)])
             if debug: print(f'NEW: container["{key}"] = "{value}":\n\t{self.container[i]}')
-        # elif self.slots[i] == key:
         else:
             inContainer = False
             j = -1
@@ -135,7 +144,6 @@ class HashTable:
                 if n[0] == key:
                     inContainer = True
                     break
-            # if debug: print(f'inContainer = {inContainer}')
             if inContainer:
                 self.container[i].remove(self.container[i].nodeat(j))
                 self.container[i].append((key, value))
@@ -208,36 +216,55 @@ class HashTable:
                 return None
 
 
-    def resize(self, new_capacity):
+    def resize(self, new_capacity: int):
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
 
         Implement this.
         """
-        s = self.slots[:]
-        c = self.container[:]
+        if debug: print("\nCopying container data into temporary array...")
+        c = []
+        i = -1
+        for bucket in self.container:
+            i += 1
+            if bucket is not None:
+                if trace: print(f"bucket {i} size = {bucket.size}")
+                for n in bucket:
+                    if trace: print(f"\tn = {n}")
+                    c.append((n[0], n[1]))
+            else:
+                if trace: print(f"bucket {i} is empty")
+        if debug: print(f"\nCopying {len(c)} items completed!\n{c}\n")
+
+        original_load_factor = self.get_load_factor()
         self.__init__(new_capacity)
-        for i in range(len(s)):
+        if debug: print(f"Populating new container holding up to {new_capacity} items...")
+        for i in range(len(c)):
+            s = c[i][0]
+            v = c[i][1]
             if debug:
-                print(f'i="{i}"')
-                print(f's[i]="{s[i]}"')
-                print(f'c[i]="{c[i]}"')
-            if s[i] is not None:
-                self.put(s[i], c[i])
+                print(f'{i}\t"{s}" = "{v}"')
+            if v is not None:
+                self.put(s, v)
+        if debug: print(f"Completed!\tload_factors: old = {original_load_factor}, New = {self.get_load_factor()}")
 
 
     def auto_resize(self):
-        """
-        Automatically adjusts the hash table
-        capacity based on min/max load factor
-        """
-
         load_factor = self.get_load_factor()
-        if load_factor > max_load_factor:
-            self.resize(self.capacity * 2)
-        elif load_factor < min_load_factor:
-            self.resize(self.capacity / 2)
+        if debug: print(f"load_factor = {load_factor}\nload_factor > max_load_factor ({max_load_factor}) = {load_factor > max_load_factor}\nload_factor < min_load_factor ({min_load_factor}) = {load_factor < min_load_factor}")
+        capacity = self.capacity
+        while load_factor > max_load_factor or load_factor < min_load_factor:
+            if load_factor > max_load_factor:
+                capacity = int(capacity * 2)
+            elif load_factor < min_load_factor:
+                capacity = int(capacity / 2)
+            load_factor = self.get_load_factor(capacity)
+            if debug: print(f"Current load_factor = {load_factor}")
+        if debug: print(f"Optimum capacity = {capacity}")
+        self.resize(capacity)
+        load_factor = self.get_load_factor()
+        if debug: print(f"Final load_factor = {load_factor}")
 
 
 if __name__ == "__main__":
