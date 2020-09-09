@@ -121,11 +121,13 @@ class HashTable:
         # self.container[i] = value
 
         # collision guarding implementation
+        # if debug: print(f'slots["{key}"] = "{self.slots[i]}"')
         if self.slots[i] is None:
             self.slots[i] = key
             self.container[i] = sllist([(key, value)])
             if debug: print(f'NEW: container["{key}"] = "{value}":\n\t{self.container[i]}')
-        elif self.slots[i] == key:
+        # elif self.slots[i] == key:
+        else:
             inContainer = False
             j = -1
             for n in self.container[i]:
@@ -133,6 +135,7 @@ class HashTable:
                 if n[0] == key:
                     inContainer = True
                     break
+            # if debug: print(f'inContainer = {inContainer}')
             if inContainer:
                 self.container[i].remove(self.container[i].nodeat(j))
                 self.container[i].append((key, value))
@@ -201,7 +204,8 @@ class HashTable:
                     if debug: print(f'GET: container["{key}"].value = "{value}"')
                     return value
             if value is None:
-                if debug: print(f'GET: value not found in container["{key}"]:\n{self.container[i]}')
+                if debug: print(f'GET: value not found in container["{key}"]:\n\t{self.container[i]}')
+                return None
 
 
     def resize(self, new_capacity):
