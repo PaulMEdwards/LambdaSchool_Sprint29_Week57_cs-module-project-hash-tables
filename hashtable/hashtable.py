@@ -1,4 +1,7 @@
-debug = False
+# Python LinkedList Library  https://pypi.org/project/llist/
+from llist import sllist, sllistnode    # pip install llist
+
+debug = True
 
 class HashTableEntry:
     """
@@ -13,8 +16,9 @@ class HashTableEntry:
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
 
-# Resize when load_factor higher than this limit
-load_factor_limit = 0.75
+# Resize when load_factor beyond these limits
+min_load_factor = 0.2
+max_load_factor = 0.7
 
 # Hash algorithm constants
 FNV_prime = 1099511628211
@@ -60,7 +64,7 @@ class HashTable:
         for v in self.container:
             if v is not None: load += 1
         load_factor = self.capacity / load
-        if debug: print(f"Load Factor: {load_factor}")
+        if debug: print(f'Load Factor: {load_factor}')
         return load_factor
 
 
@@ -97,8 +101,10 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        hash_value = self.fnv1(key) % self.capacity
+        # hash_value = self.djb2(key) % self.capacity
+        if debug: print(f'HASH: "{key}" = {hash_value}')
+        return hash_value
 
     def put(self, key, value):
         """
@@ -109,18 +115,31 @@ class HashTable:
         Implement this.
         """
         i = self.hash_index(key)
-        if debug: print(f"Hash Index for key '{key}' = {i}\nValue = {value}")
 
-        self.slots[i] = key
-        self.container[i] = value
+        # # basic implementation
+        # self.slots[i] = key
+        # self.container[i] = value
 
-        # if self.slots[i] == None:
-        #     self.slots[i] = key
-        #     self.container[i] = value
-        # else:
-        #     if self.slots[i] == key:
-        #         self.container[i] = value
-        #     else:
+        # collision guarding implementation
+        if self.slots[i] is None:
+            self.slots[i] = key
+            self.container[i] = sllist([(key, value)])
+            if debug: print(f'NEW: container["{key}"] = "{value}":\n\t{self.container[i]}')
+        elif self.slots[i] == key:
+            inContainer = False
+            j = -1
+            for n in self.container[i]:
+                j += 1
+                if n[0] == key:
+                    inContainer = True
+                    break
+            if inContainer:
+                self.container[i].remove(self.container[i].nodeat(j))
+                self.container[i].append((key, value))
+                if debug: print(f'UPD: container["{key}"] = "{value}":\n\t{self.container[i]}')
+            else:
+                self.container[i].append((key, value))
+                if debug: print(f'ADD: container["{key}"] = "{value}":\n\t{self.container[i]}')
 
 
 
@@ -133,8 +152,29 @@ class HashTable:
         Implement this.
         """
         i = self.hash_index(key)
-        if self.slots[i] is not None: self.slots[i] = None
-        if self.container[i] is not None: self.container[i] = None
+
+        # # basic implementation
+        # if self.slots[i] is not None: self.slots[i] = None
+        # if self.container[i] is not None: self.container[i] = None
+
+        # collision guarding implementation
+        if self.slots[i] is not None:
+            if self.container[i] is not None:
+                inContainer = False
+                j = -1
+                for n in self.container[i]:
+                    j += 1
+                    if n[0] == key:
+                        inContainer = True
+                        self.container[i].remove(self.container[i].nodeat(j))
+                        if debug: print(f'DEL: Found and removed container["{key}"]')
+                        break
+                if self.container[i].size == 0:
+                    self.container[i] = None
+                    self.slots[i] = None
+            elif self.container[i] is None:
+                print(f'WARN: slots[{key}] is not None, but container["{key}"] is None which should not happen... Clearing the slot.')
+                self.slots[i] = None
 
 
     def get(self, key):
@@ -146,7 +186,22 @@ class HashTable:
         Implement this.
         """
         i = self.hash_index(key)
-        return self.container[i]
+
+        # # basic implementation
+        # return self.container[i]
+
+        # collision guarding implementation
+        if self.slots[i] is not None:
+            value = None
+            j = -1
+            for n in self.container[i]:
+                j += 1
+                if n[0] == key:
+                    value = n[1]
+                    if debug: print(f'GET: container["{key}"].value = "{value}"')
+                    return value
+            if value is None:
+                if debug: print(f'GET: value not found in container["{key}"]:\n{self.container[i]}')
 
 
     def resize(self, new_capacity):
@@ -161,12 +216,24 @@ class HashTable:
         self.__init__(new_capacity)
         for i in range(len(s)):
             if debug:
-                print(f"i='{i}'")
-                print(f"s[i]='{s[i]}'")
-                print(f"c[i]='{c[i]}'")
+                print(f'i="{i}"')
+                print(f's[i]="{s[i]}"')
+                print(f'c[i]="{c[i]}"')
             if s[i] is not None:
                 self.put(s[i], c[i])
 
+
+    def auto_resize(self):
+        """
+        Automatically adjusts the hash table
+        capacity based on min/max load factor
+        """
+
+        load_factor = self.get_load_factor()
+        if load_factor > max_load_factor:
+            self.resize(self.capacity * 2)
+        elif load_factor < min_load_factor:
+            self.resize(self.capacity / 2)
 
 
 if __name__ == "__main__":
