@@ -1,4 +1,4 @@
-debug = True
+debug = False
 
 """
 This is the same test, but with big hash tables that are _unlikely_ to
