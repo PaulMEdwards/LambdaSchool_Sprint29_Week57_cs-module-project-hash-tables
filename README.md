@@ -14,7 +14,7 @@ Task: Implement a basic hash table without collision resolution.
    * FNV-1 (64-bit)
 
    You are allowed to Google for these hashing functions and implement
-   from psuedocode.
+   from pseudocode.
 
 3. Implement the `hash_index()` that returns an index value for a key.
 
@@ -22,7 +22,7 @@ Task: Implement a basic hash table without collision resolution.
 
 You can test this with:
 
-```
+```text
 python test_hashtable_no_collisions.py
 ```
 
@@ -40,7 +40,7 @@ Task: Implement linked-list chaining for collision resolution.
 
 You can test this with:
 
-```
+```text
 python test_hashtable.py
 ```
 
@@ -56,7 +56,7 @@ doubling.
 
 You can test this with both of:
 
-```
+```text
 python test_hashtable.py
 python test_hashtable_resize.py
 ```
@@ -81,4 +81,3 @@ full-featured.)
 * [Histogram](applications/histo/)
 * [Cracking Caesar Ciphers](applications/crack_caesar/)
 * [Sum and Difference](applications/sumdiff/)
-
